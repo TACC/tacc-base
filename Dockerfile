@@ -95,7 +95,8 @@ RUN curl http://mvapich.cse.ohio-state.edu/download/mvapich/mv${MAJV}/${DIR}.tar
 	--enable-cxx=yes \
 	--enable-romio \
 	--enable-fast=O3 \
-    && make -j $(nproc --all 2>/dev/null || echo 2) \
+    #&& make -j $(($(nproc --all 2>/dev/null || echo 2) - 2)) \
+    && make \
     && make install \
     && cd ../ && rm -rf ${DIR} \
     && rm -rf /usr/local/share/doc/mvapich2
