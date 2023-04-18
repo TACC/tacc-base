@@ -1,9 +1,18 @@
-ARG CUDA=11.2.2
+ARG CUDA=11.7.1
 FROM nvidia/cuda:${CUDA}-cudnn8-runtime-ubuntu18.04
 ARG CUDA
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+########################################
+# Add docker-clean
+########################################
+COPY extras/docker-clean /usr/bin/docker-clean
+RUN chmod a+rx /usr/bin/docker-clean && docker-clean
+
+########################################
+# Add OS updates
+########################################
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         build-essential \
@@ -22,14 +31,11 @@ RUN apt-get update \
         libxml2-dev \
         libfabric-dev \
         wget \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get autoremove -y \
-    && apt-get clean
+    && docker-clean
 
 ########################################
 # Install conda
 ########################################
-
 ENV CONDA_DIR=/opt/conda
 ENV PATH=${CONDA_DIR}/bin:${PATH}
 # Download and install miniforge
@@ -40,22 +46,31 @@ RUN wget -q -P /tmp https://github.com/conda-forge/miniforge/releases/download/2
     && conda config --system --set show_channel_urls true \
     && conda config --system --set default_threads 4 \
     && conda install --yes --no-update-deps python=3.9 \
-    && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh 
+    && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh \
+    && docker-clean
 
 ########################################
 # Install CUDA and PT
 ########################################
-RUN conda install --yes --no-update-deps -c pytorch \
-    cudatoolkit=$(cut -f1,2 -d. <<< ${CUDA}) \
-    cudnn=8.1 \
-    pytorch==1.12.1 \
-    torchvision==0.13.1 \
-    torchtext==0.13.1 \
-    pytorch-lightning==2.0.1.post0 \
-    transformers==4.27.4
+RUN conda install --yes --no-update-deps -c pytorch -c nvidia\
+    pytorch==1.13.1 \
+    torchvision==0.14.1 \
+    torchaudio==0.13.1 \
+    pytorch-cuda=$(cut -f1,2 -d. <<< ${CUDA}) \
+    && docker-clean
 
 ########################################
-# Install Jupyter and Misc
+# Install PT misc
+########################################
+RUN conda install --yes --no-update-deps \
+    cudnn=8.4 \
+    torchtext==0.14.1 \
+    pytorch-lightning==2.0.1.post0 \
+    transformers==4.28.1 \
+    && docker-clean
+
+########################################
+# Install Jupyter
 ########################################
 RUN conda install --yes --no-update-deps \
     h5py==3.8.0 \
@@ -63,19 +78,23 @@ RUN conda install --yes --no-update-deps \
     jupyter==1.0.0 \
     jupyterlab==3.6.3 \
     matplotlib==3.7.1 \
-    mock==5.0.1 \
+    && docker-clean
+
+########################################
+# Install misc 
+########################################
+RUN conda install --yes --no-update-deps \
+    mock==5.0.2 \
     scipy==1.10.1 \
+    cython==0.29.34 \
     scikit-learn==1.2.2 \
     scikit-image==0.20.0 \
-    cython==0.29.34 \
-    && find ${CONDA_DIR} -follow -type f -name '*.a' -delete \
-    && find ${CONDA_DIR} -follow -type f -name '*.pyc' -delete \
-    && conda clean -ay
+    && docker-clean
 
 ########################################
 # Install TF
 ########################################
-RUN pip install tensorflow==2.11.0
+RUN pip install tensorflow==2.11.0 && docker-clean
 
 ########################################
 # Install mpi
