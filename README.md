@@ -1,7 +1,7 @@
 # TACC Machine Learning / MPI Containers
 
 
-Containers for running ML & MPI applications on TACC GPU sysems
+Containers for running ML & MPI applications on TACC GPU systems
 
 ## Image information
 
