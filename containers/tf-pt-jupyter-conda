@@ -1,0 +1,63 @@
+ARG FROM_TAG
+ARG ORG
+FROM ${ORG}/tacc-ml-mpi:${FROM_TAG}
+
+########################################
+# Configure ENV 
+########################################
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ARG FLAGS
+ARG CUDA
+ENV CFLAGS=${FLAGS}
+ENV CXXFLAGS=${FLAGS}
+
+########################################
+# Install CUDA and PT
+########################################
+RUN conda install --yes --no-update-deps -c pytorch -c nvidia\
+    pytorch==1.13.1 \
+    torchvision==0.14.1 \
+    torchaudio==0.13.1 \
+    cudatoolkit=$(cut -f1,2 -d. <<< ${CUDA}) \
+    cudnn=8.4 \
+    && docker-clean
+
+########################################
+# Install PT misc
+########################################
+RUN conda install --yes --no-update-deps \
+    torchtext==0.14.1 \
+    pytorch-lightning==2.0.1.post0 \
+    transformers==4.28.1 \
+    && docker-clean
+
+########################################
+# Install Jupyter
+########################################
+RUN conda install --yes --no-update-deps \
+    h5py==3.8.0 \
+    ipykernel==6.22.0 \
+    jupyter==1.0.0 \
+    jupyterlab==3.6.3 \
+    matplotlib==3.7.1 \
+    && docker-clean
+
+RUN python -m ipykernel.kernelspec
+
+########################################
+# Install misc 
+########################################
+RUN conda install --yes --no-update-deps \
+    mock==5.0.2 \
+    mpi4py==3.1.4 \
+    scipy==1.10.1 \
+    cython==0.29.34 \
+    scikit-learn==1.2.2 \
+    scikit-image==0.20.0 \
+    && docker-clean
+
+########################################
+# Install TF
+########################################
+RUN pip install tensorflow==2.11.0 && docker-clean
+

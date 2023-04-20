@@ -1,0 +1,49 @@
+ARG CUDA=11.7.1
+FROM nvidia/cuda:${CUDA}-cudnn8-runtime-ubuntu18.04
+ARG CUDA
+
+########################################
+# Configure ENV 
+########################################
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+########################################
+# Add docker-clean & entrypoint script
+########################################
+COPY extras/docker-clean /usr/bin/docker-clean
+RUN chmod a+rx /usr/bin/docker-clean && docker-clean
+
+COPY extras/entry.sh /entry.sh
+RUN chmod a+rx /entry.sh
+ENTRYPOINT [ "/entry.sh" ]
+
+########################################
+# Add OS updates
+########################################
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        curl \
+        cuda-command-line-tools-$(cut -f1,2 -d- <<< ${CUDA//./-}) \
+        less \
+        lbzip2 \
+        wget \
+    && docker-clean
+
+########################################
+# Install conda
+########################################
+ENV CONDA_DIR=/opt/conda
+ENV PATH=${CONDA_DIR}/bin:${PATH}
+# Download and install miniforge
+RUN wget -q -P /tmp https://github.com/conda-forge/miniforge/releases/download/23.1.0-0/Miniforge3-23.1.0-0-Linux-x86_64.sh \
+    && bash /tmp/Miniforge3-23.1.0-0-Linux-x86_64.sh -b -p $CONDA_DIR \
+    && rm /tmp/Miniforge3-23.1.0-0-Linux-x86_64.sh \
+    && conda config --system --set auto_update_conda false \
+    && conda config --system --set show_channel_urls true \
+    && conda config --system --set default_threads 4 \
+    && conda install --yes --no-update-deps python=3.9 \
+    && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh \
+    && docker-clean
+
