@@ -41,7 +41,7 @@ RUN curl http://mvapich.cse.ohio-state.edu/download/mvapich/mv${MAJV}/${DIR}.tar
 
 # Add hello world
 COPY extras/hello.c /tmp/hello.c
-RUN mpicc /tmp/hello.c -o /usr/local/bin/hellow \
+RUN /usr/local/bin/mpicc /tmp/hello.c -o /usr/local/bin/hellow \
     && rm /tmp/hello.c
 
 # Build benchmark programs
