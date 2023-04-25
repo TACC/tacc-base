@@ -1,5 +1,5 @@
 ARG CUDA=11.7.1
-FROM nvidia/cuda:${CUDA}-cudnn8-runtime-rockylinux8
+FROM nvidia/cuda:${CUDA}-cudnn8-runtime-ubuntu20.04
 ARG CUDA
 
 ########################################
@@ -20,11 +20,14 @@ ENTRYPOINT [ "/entry.sh" ]
 ########################################
 # Add OS updates
 ########################################
-RUN yum upgrade -y \
-    && yum groupinstall -y "Development tools" \
-    && yum install -y \
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        curl \
         cuda-command-line-tools-$(cut -f1,2 -d- <<< ${CUDA//./-}) \
-        ncurses \
+        less \
+        lbzip2 \
         wget \
     && docker-clean
 

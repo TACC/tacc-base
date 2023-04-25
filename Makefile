@@ -5,10 +5,16 @@ SHELL = bash
 
 ORG := eriksf
 CUDA := 11.7.1
-VER := ubuntu18.04-cuda11-tf2.11-pt1.13-mvapich2.3-ib
 PUSH ?= 0
+CACHE ?= 1
 
-BUILD = docker build --build-arg CUDA=$(CUDA) -t $(ORG)/tacc-ml-mpi:$(@) -f $(word 1,$^)
+ifeq "$(CACHE)" "0"
+    NOCACHE:=--no-cache
+else
+    NOCACHE:=
+endif
+
+BUILD = docker build --build-arg CUDA=$(CUDA) -t $(ORG)/tacc-ml-mpi:$(@) -f $(word 1,$^) $(NOCACHE)
 PUSHC = [ "$(PUSH)" -eq "1" ] && docker push $(ORG)/tacc-ml-mpi:$@ || echo "not pushing $@"
 ####################################
 # CFLAGS
@@ -28,7 +34,7 @@ docker:
 ####################################
 # Base Images
 ####################################
-BASE := $(shell echo {ubuntu18.04,rockylinux8}-cuda11)
+BASE := $(shell echo {ubuntu18.04,ubuntu20.04,rockylinux8}-cuda11)
 
 %: containers/% | docker
 	$(BUILD) --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
@@ -43,7 +49,7 @@ clean-base: | docker
 ####################################
 # ML Images
 ####################################
-ML := $(shell echo {ubuntu18.04,rockylinux8}-cuda11-tf2.11-pt1.13)
+ML := $(shell echo {ubuntu18.04,ubuntu20.04,rockylinux8}-cuda11-tf2.11-pt1.13)
 
 %-tf2.11-pt1.13: containers/tf-pt-jupyter-conda % | docker
 	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
@@ -58,11 +64,38 @@ clean-ml: | docker
 	if [ -e ml-images ]; then rm ml-images; fi
 
 ####################################
+# ML/MPI Images
+####################################
+MPI := $(shell echo {ubuntu18.04,ubuntu20.04,rockylinux8}-cuda11-tf2.11-pt1.13-mvapich2.3-ib)
+
+ubuntu18.04-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/ubuntu-ml-mvapich2.3-ib ubuntu18.04-cuda11-tf2.11-pt1.13 | docker
+	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
+	$(PUSHC)
+	touch $@
+
+ubuntu20.04-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/ubuntu-ml-mvapich2.3-ib ubuntu20.04-cuda11-tf2.11-pt1.13 | docker
+	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
+	$(PUSHC)
+	touch $@
+
+rockylinux8-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/rockylinux-ml-mvapich2.3-ib rockylinux8-cuda11-tf2.11-pt1.13 | docker
+	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
+	$(PUSHC)
+	touch $@
+
+ml-mpi-images: $(MPI)
+	touch $@
+
+clean-ml-mpi: | docker
+	for img in $(MPI); do docker rmi -f $(ORG)/tacc-ml-mpi:$$img; rm -f $$img $$img.log; done
+	if [ -e ml-mpi-images ]; then rm ml-mpi-images; fi
+
+####################################
 # All
 ####################################
-all: ml-images
+all: ml-mpi-images
 	docker system prune
 
-clean: clean-base clean-ml
+clean: clean-base clean-ml clean-ml-mpi
 	docker system prune
 

@@ -67,5 +67,7 @@ Temporary Items
 *.log
 base-images
 ml-images
+ml-mpi-images
 rockylinux8-cuda11-tf2.11-pt1.13
 ubuntu18.04-cuda11-tf2.11-pt1.13
+ubuntu20.04-cuda11-tf2.11-pt1.13

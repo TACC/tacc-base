@@ -53,7 +53,7 @@ RUN conda install --yes --no-update-deps \
     scipy==1.10.1 \
     cython==0.29.34 \
     scikit-learn==1.2.2 \
-    scikit-image==0.20.0 \
+    scikit-image \
     && docker-clean
 
 ########################################
