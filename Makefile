@@ -64,38 +64,65 @@ clean-ml: | docker
 	if [ -e ml-images ]; then rm ml-images; fi
 
 ####################################
+# MPI Images
+####################################
+MPI := $(shell echo {ubuntu18.04,ubuntu20.04,rockylinux8}-mvapich2.3-ib)
+
+ubuntu18.04-mvapich2.3-ib: containers/ubuntu-mvapich2.3-ib ubuntu18.04-cuda11 | docker
+	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
+	$(PUSHC)
+	touch $@
+
+ubuntu20.04-mvapich2.3-ib: containers/ubuntu-mvapich2.3-ib ubuntu20.04-cuda11 | docker
+	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
+	$(PUSHC)
+	touch $@
+
+rockylinux8-mvapich2.3-ib: containers/rockylinux-mvapich2.3-ib rockylinux8-cuda11 | docker
+	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
+	$(PUSHC)
+	touch $@
+
+mpi-images: $(MPI)
+	touch $@
+
+clean-mpi: | docker
+	for img in $(MPI); do docker rmi -f $(ORG)/tacc-ml-mpi:$$img; rm -f $$img $$img.log; done
+	if [ -e mpi-images ]; then rm mpi-images; fi
+
+####################################
 # ML/MPI Images
 ####################################
-MPI := $(shell echo {ubuntu18.04,ubuntu20.04,rockylinux8}-cuda11-tf2.11-pt1.13-mvapich2.3-ib)
+MLMPI := $(shell echo {ubuntu18.04,ubuntu20.04,rockylinux8}-cuda11-tf2.11-pt1.13-mvapich2.3-ib)
 
-ubuntu18.04-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/ubuntu-ml-mvapich2.3-ib ubuntu18.04-cuda11-tf2.11-pt1.13 | docker
+ubuntu18.04-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/ubuntu-mvapich2.3-ib ubuntu18.04-cuda11-tf2.11-pt1.13 | docker
 	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
 	$(PUSHC)
 	touch $@
 
-ubuntu20.04-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/ubuntu-ml-mvapich2.3-ib ubuntu20.04-cuda11-tf2.11-pt1.13 | docker
+ubuntu20.04-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/ubuntu-mvapich2.3-ib ubuntu20.04-cuda11-tf2.11-pt1.13 | docker
 	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
 	$(PUSHC)
 	touch $@
 
-rockylinux8-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/rockylinux-ml-mvapich2.3-ib rockylinux8-cuda11-tf2.11-pt1.13 | docker
+rockylinux8-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/rockylinux-mvapich2.3-ib rockylinux8-cuda11-tf2.11-pt1.13 | docker
 	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
 	$(PUSHC)
 	touch $@
 
-ml-mpi-images: $(MPI)
+ml-mpi-images: $(MLMPI)
 	touch $@
 
 clean-ml-mpi: | docker
-	for img in $(MPI); do docker rmi -f $(ORG)/tacc-ml-mpi:$$img; rm -f $$img $$img.log; done
+	for img in $(MLMPI); do docker rmi -f $(ORG)/tacc-ml-mpi:$$img; rm -f $$img $$img.log; done
 	if [ -e ml-mpi-images ]; then rm ml-mpi-images; fi
 
 ####################################
 # All
 ####################################
-all: ml-mpi-images
+all: ml-mpi-images mpi-images
 	docker system prune
 
-clean: clean-base clean-ml clean-ml-mpi
+clean: clean-base clean-ml clean-mpi clean-ml-mpi
 	docker system prune
 
