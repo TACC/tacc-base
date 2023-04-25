@@ -45,7 +45,7 @@ RUN curl http://mvapich.cse.ohio-state.edu/download/mvapich/mv${MAJV}/${DIR}.tar
 
 # Add hello world
 COPY extras/hello.c /tmp/hello.c
-RUN /usr/local/bin/mpicc /tmp/hello.c -o /usr/local/bin/hellow \
+RUN mpicc /tmp/hello.c -o /usr/local/bin/hellow \
     && rm /tmp/hello.c
 
 # Build benchmark programs
@@ -55,4 +55,11 @@ RUN bash /tmp/install_benchmarks.sh \
 
 # Test installation
 RUN MV2_SMP_USE_CMA=0 mpirun -n 2 hellow
+
+########################################
+# Install mpi4py
+########################################
+RUN conda install --yes --no-update-deps \
+    mpi4py==3.1.4 \
+    && docker-clean
 
