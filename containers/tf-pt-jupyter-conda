@@ -1,6 +1,6 @@
 ARG FROM_TAG
 ARG ORG
-FROM ${ORG}/tacc-ml-mpi:${FROM_TAG}
+FROM ${ORG}/tacc-base:${FROM_TAG}
 
 ########################################
 # Configure ENV 
