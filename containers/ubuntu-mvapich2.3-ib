@@ -59,7 +59,5 @@ RUN MV2_SMP_USE_CMA=0 mpirun -n 2 hellow
 ########################################
 # Install mpi4py
 ########################################
-RUN conda install --yes --no-update-deps \
-    mpi4py==3.1.4 \
-    && docker-clean
+RUN pip install mpi4py==3.1.4 && docker-clean
 

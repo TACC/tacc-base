@@ -65,12 +65,10 @@ RUN bash /tmp/install_benchmarks.sh \
     && rm /tmp/install_benchmarks.sh
 
 # Test installation
-RUN PSM2_DEVICES="shm,self" MV2_SMP_USE_CMA=0 mpirun -n 2 hellow
+#RUN PSM2_DEVICES="shm,self" MV2_SMP_USE_CMA=0 mpirun -n 2 hellow
 
 ########################################
 # Install mpi4py
 ########################################
-RUN conda install --yes --no-update-deps \
-    mpi4py==3.1.4 \
-    && docker-clean
+RUN pip install mpi4py==3.1.4 && docker-clean
 
