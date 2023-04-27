@@ -16,6 +16,8 @@ RUN yum install -y \
     #libpsm2-compat \
     #libpsm2 \
     #libpsm2-devel \
+    numactl-libs \
+    numactl-devel \
     && docker-clean
 
 ########################################
