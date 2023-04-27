@@ -32,7 +32,8 @@ RUN curl -L https://github.com/cornelisnetworks/opa-psm2/archive/${PSM}_${PSMV}.
     && cd ${PSMD} \
     #&& make PSM_AVX=1 -j $(nproc --all 2>/dev/null || echo 2) \
     && make PSM_AVX=1 \
-    && make LIBDIR=/usr/lib/x86_64-linux-gnu install \
+    && make install \
+    && ldconfig \
     && cd ../ && rm -rf ${PSMD}
 #
 # Install mvapich2-2.3
