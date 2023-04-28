@@ -38,6 +38,8 @@ BASE := $(shell echo {ubuntu18.04,ubuntu20.04,rockylinux8}-cuda11)
 
 %: containers/% | docker
 	$(BUILD) --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
+	$(PUSHC)
+	touch $@
 
 base-images: $(BASE)
 	touch $@
@@ -110,7 +112,7 @@ clean-mpi: | docker
 ####################################
 # ML/MPI Images
 ####################################
-MLMPI := $(shell echo {ubuntu18.04,ubuntu20.04,rockylinux8}-cuda11-tf2.11-pt1.13-mvapich2.3-{ib,psm2})
+MLMPI := $(shell echo {ubuntu18.04,ubuntu20.04,rockylinux8}-cuda11-tf2.11-pt1.13-mvapich2.3-ib)
 
 # mvapich2.3-ib
 ubuntu18.04-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/ubuntu-mvapich2.3-ib ubuntu18.04-cuda11-tf2.11-pt1.13 | docker
@@ -128,22 +130,6 @@ rockylinux8-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/rockylinux-mvapich2.3
 	$(PUSHC)
 	touch $@
 	
-# mvapich2.3-psm2
-ubuntu18.04-cuda11-tf2.11-pt1.13-mvapich2.3-psm2: containers/ubuntu-mvapich2.3-psm2 ubuntu18.04-cuda11-tf2.11-pt1.13 | docker
-	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
-	$(PUSHC)
-	touch $@
-
-ubuntu20.04-cuda11-tf2.11-pt1.13-mvapich2.3-psm2: containers/ubuntu-mvapich2.3-psm2 ubuntu20.04-cuda11-tf2.11-pt1.13 | docker
-	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
-	$(PUSHC)
-	touch $@
-
-rockylinux8-cuda11-tf2.11-pt1.13-mvapich2.3-psm2: containers/rockylinux-mvapich2.3-psm2 rockylinux8-cuda11-tf2.11-pt1.13 | docker
-	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
-	$(PUSHC)
-	touch $@
-
 ml-mpi-images: $(MLMPI)
 	touch $@
 
