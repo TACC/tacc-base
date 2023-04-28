@@ -1,0 +1,87 @@
+ARG FROM_TAG
+ARG ORG
+FROM ${ORG}/tacc-base:${FROM_TAG}
+
+########################################
+# Add OS updates and IB stack
+########################################
+ARG OS
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y gnupg2 ca-certificates \
+    && curl -k -L http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox | apt-key add - \
+    && curl -k -L https://linux.mellanox.com/public/repo/mlnx_ofed/latest/${OS}/mellanox_mlnx_ofed.list > /etc/apt/sources.list.d/mlnx_ofed.list \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+       bison \
+       gfortran \
+       libfabric-dev \
+       libibmad-dev \
+       libibumad-dev \
+       libibverbs-dev \
+       libnuma-dev \
+       librdmacm-dev \
+       libxml2-dev \
+       mlnx-ofed-hpc \
+       ucx \
+    && docker-clean
+
+########################################
+# Install mpi
+########################################
+# Install PSM2
+ARG PSM=PSM2
+ARG PSMV=11.2.230
+ARG PSMD=opa-psm2-${PSM}_${PSMV}
+
+RUN curl -L https://github.com/cornelisnetworks/opa-psm2/archive/${PSM}_${PSMV}.tar.gz | tar -xzf - \
+    && cd ${PSMD} \
+    #&& make PSM_AVX=1 -j $(nproc --all 2>/dev/null || echo 2) \
+    && make PSM_AVX=1 \
+    && make LIBDIR=/usr/lib/x86_64-linux-gnu install \
+    && cd ../ && rm -rf ${PSMD}
+
+# Install impi-19.0.9
+ARG MAJV=19
+ARG MINV=0
+ARG BV=.9
+ARG BLD=912
+ARG DIR=intel${MAJV}-${MAJV}.${MINV}${BV}
+
+RUN curl -k -L https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB | apt-key add - \
+    && echo deb https://apt.repos.intel.com/mpi all main > /etc/apt/sources.list.d/intel-mpi.list \
+    && cat /etc/apt/sources.list.d/intel-mpi.list \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y intel-mpi-20${MAJV}${BV}-${BLD} \
+    && docker-clean
+
+# Configure environment for impi
+ENV MPIVARS_SCRIPT=/opt/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh \
+    I_MPI_LIBRARY_KIND=release_mt \
+    I_MPI_OFI_LIBRARY_INTERNAL=1 \
+    I_MPI_REMOVED_VAR_WARNING=0 \
+    I_MPI_VAR_CHECK_SPELLING=0 \
+    BASH_ENV=/opt/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh
+RUN sed -i 's~bin/sh~bin/bash~' $MPIVARS_SCRIPT \
+    && sed -i '/bin\/bash/a \[ "${IMPI_LOADED}" == "1" \] && return' $MPIVARS_SCRIPT \
+    && echo "export IMPI_LOADED=1" >> $MPIVARS_SCRIPT \
+    && echo -e '#!/bin/bash\n. /opt/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh -ofi_internal=1 release_mt\nexec "${@}"' > /entry.sh \
+    && chmod +x /entry.sh
+
+# Add hello world
+COPY extras/hello.c /tmp/hello.c
+RUN mpicc /tmp/hello.c -o /usr/local/bin/hellow \
+    && rm /tmp/hello.c
+
+# Build benchmark programs
+COPY extras/install_benchmarks.sh /tmp/install_benchmarks.sh
+RUN bash /tmp/install_benchmarks.sh \
+    && rm /tmp/install_benchmarks.sh
+
+# Test installation
+RUN mpirun -n 2 hellow
+#
+########################################
+# Install mpi4py
+########################################
+RUN pip install mpi4py==3.1.4 && docker-clean
+

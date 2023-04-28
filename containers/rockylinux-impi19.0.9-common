@@ -1,0 +1,91 @@
+ARG FROM_TAG
+ARG ORG
+FROM ${ORG}/tacc-base:${FROM_TAG}
+
+########################################
+# Add OS updates and IB stack
+########################################
+ARG OS
+RUN yum config-manager --add-repo https://linux.mellanox.com/public/repo/mlnx_ofed/latest/${OS}/mellanox_mlnx_ofed.repo \
+    && yum -y install \
+        ca-certificates \
+	gcc-gfortran \
+        libibmad-devel \
+        libibumad \
+        libibverbs-devel \
+        librdmacm \
+        libxml2-devel \
+        #libpsm2-compat \
+        #libpsm2 \
+        #libpsm2-devel \
+	numactl-libs \
+	numactl-devel \
+	mlnx-ofa_kernel \
+	mlnx-ofa_kernel-devel \
+	mlnx-ofa_kernel-modules \
+	ucx \
+	ucx-cma \
+	ucx-devel \
+	ucx-ib \
+	ucx-knem \
+	ucx-rdmacm \
+    && docker-clean
+
+########################################
+# Install mpi
+########################################
+# Install PSM2
+ARG PSM=PSM2
+ARG PSMV=11.2.230
+ARG PSMD=opa-psm2-${PSM}_${PSMV}
+
+RUN curl -L https://github.com/cornelisnetworks/opa-psm2/archive/${PSM}_${PSMV}.tar.gz | tar -xzf - \
+    && cd ${PSMD} \
+    #&& make PSM_AVX=1 -j $(nproc --all 2>/dev/null || echo 2) \
+    && make PSM_AVX=1 \
+    && make install \
+    && ldconfig \
+    && cd ../ && rm -rf ${PSMD}
+#
+# Install impi-19.0.9
+ARG MAJV=19
+ARG MINV=0
+ARG BV=.9
+ARG BLD=912
+ARG DIR=intel${MAJV}-${MAJV}.${MINV}${BV}
+
+RUN yum-config-manager -y --add-repo https://yum.repos.intel.com/setup/intelproducts.repo \
+    && yum install -y intel-mpi-20${MAJV}${BV}-${BLD} \
+    && docker-clean
+
+# Configure environment for impi
+ENV MPIVARS_SCRIPT=/opt/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh \
+    I_MPI_LIBRARY_KIND=release_mt \
+    I_MPI_OFI_LIBRARY_INTERNAL=1 \
+    I_MPI_REMOVED_VAR_WARNING=0 \
+    I_MPI_VAR_CHECK_SPELLING=0 \
+    BASH_ENV=/opt/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh
+RUN sed -i 's~bin/sh~bin/bash~' $MPIVARS_SCRIPT \
+    && sed -i '/bin\/bash/a \[ "${IMPI_LOADED}" == "1" \] && return' $MPIVARS_SCRIPT \
+    && echo "export IMPI_LOADED=1" >> $MPIVARS_SCRIPT \
+    && echo -e '#!/bin/bash\n. /opt/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh -ofi_internal=1 release_mt\nexec "${@}"' > /entry.sh \
+    && chmod +x /entry.sh
+
+# Add hello world
+COPY extras/hello.c /tmp/hello.c
+RUN mpicc /tmp/hello.c -o /usr/local/bin/hellow \
+    && rm /tmp/hello.c
+
+# Build benchmark programs
+ADD extras/install_benchmarks.sh /tmp/install_benchmarks.sh
+RUN bash /tmp/install_benchmarks.sh \
+    && rm /tmp/install_benchmarks.sh
+
+# Test installation
+RUN mpirun -n 2 hellow
+
+########################################
+# Install mpi4py
+########################################
+RUN pip install mpi4py==3.1.4 && docker-clean
+
