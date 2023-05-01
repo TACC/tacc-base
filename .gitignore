@@ -72,6 +72,7 @@ ml-mpi-images
 rockylinux8-cuda11
 rockylinux8-mvapich2.3-ib
 rockylinux8-mvapich2.3-psm2
+rockylinux8-impi19.0.9-common
 rockylinux8-cuda11-tf2.11-pt1.13
 rockylinux8-cuda11-tf2.11-pt1.13-mvapich2.3-ib
 rockylinux8-cuda11-tf2.11-pt1.13-mvapich2.3-psm2

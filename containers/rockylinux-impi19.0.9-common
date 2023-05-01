@@ -22,7 +22,8 @@ RUN yum config-manager --add-repo https://linux.mellanox.com/public/repo/mlnx_of
 	numactl-devel \
 	mlnx-ofa_kernel \
 	mlnx-ofa_kernel-devel \
-	mlnx-ofa_kernel-modules \
+	#mlnx-ofa_kernel-modules \
+	kmod-mlnx-ofa_kernel \
 	ucx \
 	ucx-cma \
 	ucx-devel \
@@ -54,7 +55,7 @@ ARG BV=.9
 ARG BLD=912
 ARG DIR=intel${MAJV}-${MAJV}.${MINV}${BV}
 
-RUN yum-config-manager -y --add-repo https://yum.repos.intel.com/setup/intelproducts.repo \
+RUN yum config-manager -y --add-repo https://yum.repos.intel.com/setup/intelproducts.repo \
     && yum install -y intel-mpi-20${MAJV}${BV}-${BLD} \
     && docker-clean
 
