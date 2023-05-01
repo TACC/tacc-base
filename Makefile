@@ -131,6 +131,7 @@ clean-mpi: | docker
 # ML/MPI Images
 ####################################
 MLMPI := $(shell echo {ubuntu18.04,ubuntu20.04,rockylinux8}-cuda11-tf2.11-pt1.13-mvapich2.3-ib)
+MLIMPI := $(shell echo {ubuntu18.04,ubuntu20.04,rockylinux8}-cuda11-tf2.11-pt1.13-impi19.0.9-common)
 
 # mvapich2.3-ib
 ubuntu18.04-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/ubuntu-mvapich2.3-ib ubuntu18.04-cuda11-tf2.11-pt1.13 | docker
@@ -147,12 +148,29 @@ rockylinux8-cuda11-tf2.11-pt1.13-mvapich2.3-ib: containers/rockylinux-mvapich2.3
 	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" ./containers &> $@.log
 	$(PUSHC)
 	touch $@
+
+# impi19.0.9-common
+ubuntu18.04-cuda11-tf2.11-pt1.13-impi19.0.9-common: containers/ubuntu-impi19.0.9-common ubuntu18.04-cuda11-tf2.11-pt1.13 | docker
+	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" --build-arg OS="ubuntu18.04" ./containers &> $@.log
+	$(PUSHC)
+	touch $@
+
+ubuntu20.04-cuda11-tf2.11-pt1.13-impi19.0.9-common: containers/ubuntu-impi19.0.9-common ubuntu20.04-cuda11-tf2.11-pt1.13 | docker
+	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" --build-arg OS="ubuntu20.04" ./containers &> $@.log
+	$(PUSHC)
+	touch $@
+
+rockylinux8-cuda11-tf2.11-pt1.13-impi19.0.9-common: containers/rockylinux-impi19.0.9-common rockylinux8-cuda11-tf2.11-pt1.13 | docker
+	$(BUILD) --build-arg FROM_TAG="$(word 2,$^)" --build-arg ORG="$(ORG)" --build-arg FLAGS="$(FLAGS)" --build-arg OS="rhel8.7" ./containers &> $@.log
+	$(PUSHC)
+	touch $@
 	
-ml-mpi-images: $(MLMPI)
+ml-mpi-images: $(MLMPI) $(MLIMPI)
 	touch $@
 
 clean-ml-mpi: | docker
 	for img in $(MLMPI); do docker rmi -f $(ORG)/tacc-base:$$img; rm -f $$img $$img.log; done
+	for img in $(MLIMPI); do docker rmi -f $(ORG)/tacc-base:$$img; rm -f $$img $$img.log; done
 	if [ -e ml-mpi-images ]; then rm ml-mpi-images; fi
 
 ####################################

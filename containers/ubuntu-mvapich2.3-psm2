@@ -1,6 +1,7 @@
 ARG FROM_TAG
 ARG ORG
 FROM ${ORG}/tacc-base:${FROM_TAG}
+LABEL maintainer="Erik Ferlanti <eferlanti@tacc.utexas.edu>"
 
 ########################################
 # Add OS updates and IB stack 
