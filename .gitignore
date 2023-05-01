@@ -76,6 +76,7 @@ rockylinux8-impi19.0.9-common
 rockylinux8-cuda11-tf2.11-pt1.13
 rockylinux8-cuda11-tf2.11-pt1.13-mvapich2.3-ib
 rockylinux8-cuda11-tf2.11-pt1.13-mvapich2.3-psm2
+rockylinux8-cuda11-tf2.11-pt1.13-impi19.0.9-common
 ubuntu18.04-cuda11
 ubuntu18.04-mvapich2.3-ib
 ubuntu18.04-mvapich2.3-psm2
@@ -83,6 +84,7 @@ ubuntu18.04-impi19.0.9-common
 ubuntu18.04-cuda11-tf2.11-pt1.13
 ubuntu18.04-cuda11-tf2.11-pt1.13-mvapich2.3-ib
 ubuntu18.04-cuda11-tf2.11-pt1.13-mvapich2.3-psm2
+ubuntu18.04-cuda11-tf2.11-pt1.13-impi19.0.9-common
 ubuntu20.04-cuda11
 ubuntu20.04-mvapich2.3-ib
 ubuntu20.04-mvapich2.3-psm2
@@ -90,3 +92,4 @@ ubuntu20.04-impi19.0.9-common
 ubuntu20.04-cuda11-tf2.11-pt1.13
 ubuntu20.04-cuda11-tf2.11-pt1.13-mvapich2.3-ib
 ubuntu20.04-cuda11-tf2.11-pt1.13-mvapich2.3-psm2
+ubuntu20.04-cuda11-tf2.11-pt1.13-impi19.0.9-common
