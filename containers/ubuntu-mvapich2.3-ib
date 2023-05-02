@@ -8,9 +8,7 @@ LABEL maintainer="Erik Ferlanti <eferlanti@tacc.utexas.edu>"
 ########################################
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    bison \
     ca-certificates \
-    gfortran \
     libfabric-dev \
     libibmad-dev \
     libibumad-dev \

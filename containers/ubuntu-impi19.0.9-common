@@ -13,8 +13,6 @@ RUN apt-get update \
     && curl -k -L https://linux.mellanox.com/public/repo/mlnx_ofed/latest/${OS}/mellanox_mlnx_ofed.list > /etc/apt/sources.list.d/mlnx_ofed.list \
     && apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-       bison \
-       gfortran \
        libfabric-dev \
        libibmad-dev \
        libibumad-dev \
@@ -80,7 +78,7 @@ RUN bash /tmp/install_benchmarks.sh \
 
 # Test installation
 RUN mpirun -n 2 hellow
-#
+
 ########################################
 # Install mpi4py
 ########################################
