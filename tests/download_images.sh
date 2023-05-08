@@ -11,6 +11,7 @@ TAGS=""
 
 
 main() {
+    check_args
     check_deps
     get_tags $URL
     for f in $TAGS
@@ -25,6 +26,18 @@ main() {
             echo "Image file '$image_file' exists, not pulling."
         fi
     done
+}
+
+check_args() {
+    if [[ $# -ne 2 ]]; then
+        echo '''Usage: download_images.sh ORG REPO
+
+ORG - the docker hub user/organization name
+
+REPO - the docker hub repository name
+'''
+        exit 1
+    fi
 }
 
 check_deps() {
