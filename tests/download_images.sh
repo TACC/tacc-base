@@ -2,11 +2,11 @@
 
 set -euo pipefail
 
-ORG=$1
-REPO=$2
 URL="https://hub.docker.com/v2/repositories/${ORG}/${REPO}/tags/"
 CONTAINER_RUNTIME="apptainer"
 DELAY=3
+ORG=""
+REPO=""
 TAGS=""
 
 
@@ -37,6 +37,9 @@ ORG - the docker hub user/organization name
 REPO - the docker hub repository name
 '''
         exit 1
+    else
+        ORG=$1
+        REPO=$2
     fi
 }
 
