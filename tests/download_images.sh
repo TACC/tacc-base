@@ -15,12 +15,12 @@ if [[ $# -ne 2 ]]; then
   $ download_images.sh eriksf tacc-base
 '''
     exit 1
-else
-    ORG=$1
-    REPO=$2
-    URL="https://hub.docker.com/v2/repositories/${ORG}/${REPO}/tags/"
-    TAGS=""
 fi
+
+ORG=$1
+REPO=$2
+URL="https://hub.docker.com/v2/repositories/${ORG}/${REPO}/tags/"
+TAGS=""
 
 main() {
     check_deps
