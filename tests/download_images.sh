@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-URL="https://hub.docker.com/v2/repositories/${ORG}/${REPO}/tags/"
 CONTAINER_RUNTIME="apptainer"
 DELAY=3
 ORG=""
@@ -13,7 +12,8 @@ TAGS=""
 main() {
     check_args
     check_deps
-    get_tags $URL
+    local url="https://hub.docker.com/v2/repositories/${ORG}/${REPO}/tags/"
+    get_tags $url
     for f in $TAGS
     do
         image_url="docker://$ORG/$REPO/$f"
@@ -32,9 +32,11 @@ check_args() {
     if [[ $# -ne 2 ]]; then
         echo '''Usage: download_images.sh ORG REPO
 
-ORG - the docker hub user/organization name
+  ORG - the docker hub user/organization name
+  REPO - the docker hub repository name
 
-REPO - the docker hub repository name
+  Example:
+  $ download_images.sh eriksf tacc-base
 '''
         exit 1
     else
