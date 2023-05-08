@@ -4,16 +4,27 @@ set -euo pipefail
 
 CONTAINER_RUNTIME="apptainer"
 DELAY=3
-ORG=""
-REPO=""
-TAGS=""
 
+if [[ $# -ne 2 ]]; then
+    echo '''Usage: download_images.sh ORG REPO
+
+  ORG - the docker hub user/organization name
+  REPO - the docker hub repository name
+
+  Example:
+  $ download_images.sh eriksf tacc-base
+'''
+    exit 1
+else
+    ORG=$1
+    REPO=$2
+    URL="https://hub.docker.com/v2/repositories/${ORG}/${REPO}/tags/"
+    TAGS=""
+fi
 
 main() {
-    check_args
     check_deps
-    local url="https://hub.docker.com/v2/repositories/${ORG}/${REPO}/tags/"
-    get_tags $url
+    get_tags $URL
     for f in $TAGS
     do
         image_url="docker://$ORG/$REPO/$f"
@@ -26,23 +37,6 @@ main() {
             echo "Image file '$image_file' exists, not pulling."
         fi
     done
-}
-
-check_args() {
-    if [[ $# -ne 2 ]]; then
-        echo '''Usage: download_images.sh ORG REPO
-
-  ORG - the docker hub user/organization name
-  REPO - the docker hub repository name
-
-  Example:
-  $ download_images.sh eriksf tacc-base
-'''
-        exit 1
-    else
-        ORG=$1
-        REPO=$2
-    fi
 }
 
 check_deps() {
