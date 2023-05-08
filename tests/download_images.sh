@@ -6,7 +6,7 @@ ORG=$1
 REPO=$2
 URL="https://hub.docker.com/v2/repositories/${ORG}/${REPO}/tags/"
 CONTAINER_RUNTIME="apptainer"
-DELAY=0
+DELAY=3
 TAGS=""
 
 
@@ -16,9 +16,14 @@ main() {
     for f in $TAGS
     do
         image_url="docker://$ORG/$REPO/$f"
-        echo "Pulling $image_url"
-        #$CONTAINER_RUNTIME pull $image_url 
-        sleep $DELAY
+        image_file="$REPO_$f.sif"
+        if [[ ! -s $image_file ]]; then
+            echo "Pulling $image_url"
+            $CONTAINER_RUNTIME pull $image_url 
+            sleep $DELAY
+        else
+            echo "Image file '$image_file' exists, not pulling."
+        fi
     done
 }
 
