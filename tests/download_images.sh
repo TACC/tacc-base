@@ -27,7 +27,7 @@ main() {
     get_tags $URL
     for f in $TAGS
     do
-        image_url="docker://${ORG}/${REPO}/${f}"
+        image_url="docker://${ORG}/${REPO}:${f}"
         image_file="${REPO}_${f}.sif"
         if [[ ! -s $image_file ]]; then
             echo "Pulling $image_url"
