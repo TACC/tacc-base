@@ -88,7 +88,8 @@ IMGDIR=$1
 cd ${IMGDIR}
 
 # redirect output to a log file as well
-exec > >(tee -i test_images.log) 2>&1
+ts=$(date +%Y%m%d_%H%M%S)
+exec > >(tee -i test_images-${ts}.log) 2>&1
 
 for IMG in $(ls -1 *.sif)
 do
@@ -120,6 +121,19 @@ do
         testT "delete $f/$TF inside container" "apptainer exec $IMG rm $f/$TF"
         testF "cannot find $f/$TF outside container" "ls $f/$TF && rm $f/$TF"
     done
+
+    # Test python version
+    testV "Python version 3.9.16 in image" "apptainer exec $IMG python -V" "Python 3.9.16"
+
+    # Run ML tests (if applicable)
+    if [[ $ML -eq 1 ]]; then
+        echo "Running ML tests..."
+    fi
+
+    # Run MPI tests (if applicable)
+    if [[ $MPI -eq 1 ]]; then
+        echo "Running MPI tests..."
+    fi
 
     # Summary
     echo -e "\n## Summary - ${filebase} ##"
