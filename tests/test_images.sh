@@ -1,71 +1,71 @@
 #!/bin/bash
 
 if [ -z "$1" -o "$1" == "-h" -o "$1" == "--help" ]; then
-	echo '''Usage: test_images.sh path/to/test_images DIR DIR ...
+    echo '''Usage: test_images.sh path/to/test_images DIR DIR ...
 
 path/to/test_images
 
 DIR
 
-	A directory that the test user should have read/write access
+    A directory that the test user should have read/write access
 to that should be tested.
 
 Example:
 $ test_images.sh $WORK/test_images $HOME $SCRATCH /tmp
 '''
-	exit 1
+    exit 1
 fi
 
 function testV() {
-	if [ "$( eval $2 )" == "$3" ]
-	then
-		echo "PASSED - $1"
-		NP=$((NP+1))
-	else
-		echo "FAILED - $1"
-		echo $2 != "$3"
-		NF=$((NF+1))
-	fi
+    if [ "$( eval $2 )" == "$3" ]
+    then
+        echo "PASSED - $1"
+        NP=$((NP+1))
+    else
+        echo "FAILED - $1"
+        echo $2 != "$3"
+        NF=$((NF+1))
+    fi
 }
 function testO() {
-	if [[ -z $( diff <( $2 2>/dev/null) <( $3 2>/dev/null) ) ]]
-	then
-		echo "PASSED - $1"
-		NP=$((NP+1))
-	else
-		echo "FAILED - $1"
-		diff <( $2 ) <( $3 )
-		echo $2 != "$3"
-		NF=$((NF+1))
-	fi
+    if [[ -z $( diff <( $2 2>/dev/null) <( $3 2>/dev/null) ) ]]
+    then
+        echo "PASSED - $1"
+        NP=$((NP+1))
+    else
+        echo "FAILED - $1"
+        diff <( $2 ) <( $3 )
+        echo $2 != "$3"
+        NF=$((NF+1))
+    fi
 }
 function testT() {
-	if bash -c "$2" &>/dev/null
-	then
-		echo "PASSED - $1"
-		NP=$((NP+1))
-	else
-		echo "FAILED - $1"
-		NF=$((NF+1))
-	fi
+    if bash -c "$2" &>/dev/null
+    then
+        echo "PASSED - $1"
+        NP=$((NP+1))
+    else
+        echo "FAILED - $1"
+        NF=$((NF+1))
+    fi
 }
 function testF() {
-	if $2 &> /dev/null
-	then
-		echo "FAILED - $1"
-		echo "$2"
-		NF=$((NF+1))
-	else
-		echo "PASSED - $1"
-		NP=$((NP+1))
-	fi
+    if $2 &> /dev/null
+    then
+        echo "FAILED - $1"
+        echo "$2"
+        NF=$((NF+1))
+    else
+        echo "PASSED - $1"
+        NP=$((NP+1))
+    fi
 }
 function verlte {
-	# Check to see if V1 <= V2
-	#
-	# Usage: verlte 2.3.1 2.2.1
-	# 1
-	[  "$1" = $(echo -e "$1\n$2" | sort -V | head -n1) ]
+    # Check to see if V1 <= V2
+    #
+    # Usage: verlte 2.3.1 2.2.1
+    # 1
+    [  "$1" = $(echo -e "$1\n$2" | sort -V | head -n1) ]
 }
 
 function checkimg() {
@@ -90,13 +90,13 @@ for IMG in $(ls -1 *.sif)
 do
     ML=0
     MPI=0
-	NP=0
-	NF=0
+    NP=0
+    NF=0
 
-	filebase="${IMG%%.*}"
-	exec > >(tee -a -i ${filebase}.log)
-	exec 2>&1
-	echo "Testing - ${filebase}:"
+    filebase="${IMG%%.*}"
+    exec > >(tee -a -i ${filebase}.log)
+    exec 2>&1
+    echo "Testing - ${filebase}:"
 
     checkimg "$IMG"
     # Test user
@@ -118,9 +118,9 @@ do
         testF "cannot find $f/$TF outside container" "ls $f/$TF && rm $f/$TF"
     done
 
-	# Summary
-	echo -e "\n## Summary - ${filebase} ##"
-	echo "$NP tests passed"
-	echo "$NF tests failed"
-	echo ""
+    # Summary
+    echo -e "\n## Summary - ${filebase} ##"
+    echo "$NP tests passed"
+    echo "$NF tests failed"
+    echo ""
 done
