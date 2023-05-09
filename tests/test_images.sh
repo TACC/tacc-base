@@ -98,6 +98,7 @@ do
     NF=0
 
     filebase="${IMG%%.*}"
+    echo "--------------------------------------------------"
     echo "## TESTING - ${filebase} ##"
 
     checkimg "$IMG"
