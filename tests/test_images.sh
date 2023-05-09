@@ -86,6 +86,10 @@ function checkimg() {
 
 IMGDIR=$1
 cd ${IMGDIR}
+
+# redirect output to a log file as well
+exec > >(tee -i test_images.log) 2>&1
+
 for IMG in $(ls -1 *.sif)
 do
     ML=0
@@ -94,9 +98,7 @@ do
     NF=0
 
     filebase="${IMG%%.*}"
-    exec > >(tee -a -i ${filebase}.log)
-    exec 2>&1
-    echo "Testing - ${filebase}:"
+    echo "## TESTING - ${filebase} ##"
 
     checkimg "$IMG"
     # Test user
