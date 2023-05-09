@@ -58,6 +58,7 @@ get_tags() {
     local tags=$(echo $response | jq -r '.results[].name')
     TAGS+="$tags"
     if [[ "$next" != "null" ]]; then
+        TAGS+=$'\n'
         get_tags $next
     fi
 }
