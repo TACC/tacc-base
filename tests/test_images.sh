@@ -16,9 +16,6 @@ $ test_images.sh $WORK/test_images $HOME $SCRATCH /tmp
 	exit 1
 fi
 
-NP=0
-NF=0
-
 function testV() {
 	if [ "$( eval $2 )" == "$3" ]
 	then
@@ -75,17 +72,12 @@ function checkimg() {
     img=$1
     has_ml=0
     has_mpi=0
-    ML=0
-    MPI=0
-    MLMPI=0
 
     [[ $img == *"-pt"* ]] && has_ml=1
     [[ $img == *"-impi"* ]] && has_mpi=1
     [[ $img == *"-mvapich"* ]] && has_mpi=1
 
-    if [[ $has_ml -eq 1 && $has_mpi -eq 1 ]]; then
-        MLMPI=1
-    elif [[ $has_ml -eq 1 ]]; then
+    if [[ $has_ml -eq 1 ]]; then
         ML=1
     elif [[ $has_mpi -eq 1 ]]; then
         MPI=1
@@ -98,30 +90,37 @@ for IMG in $(ls -1 *.sif)
 do
     ML=0
     MPI=0
-    MLMPI=0
+	NP=0
+	NF=0
+
+	filebase="${IMG%%.*}"
+	exec > >(tee -a -i ${filebase}.log)
+	exec 2>&1
+	echo "Testing - ${filebase}:"
 
     checkimg "$IMG"
     # Test user
-    testV "$USER in singularity image" "singularity exec $IMG whoami" "$USER"
+    testV "$USER in apptainer image" "apptainer exec $IMG whoami" "$USER"
 
     # Test mounted filesystems
     for f in ${@:2} /tmp
     do
-        testO "native $f is mounted in image" "singularity exec $IMG /bin/ls -U $f" "/bin/ls -U $f"
+        testO "native $f is mounted in image" "apptainer exec $IMG /bin/ls -U $f" "/bin/ls -U $f"
     done
 
     # Test writing files
     TF="testFile$((1000 + RANDOM % 9999))"
     for f in ${@:2} /tmp
     do
-        testT "create $f/$TF inside container" "singularity exec $IMG touch $f/$TF"
+        testT "create $f/$TF inside container" "apptainer exec $IMG touch $f/$TF"
         testT "find $f/$TF outside container" "ls $f/$TF"
-        testT "delete $f/$TF inside container" "singularity exec $IMG rm $f/$TF"
+        testT "delete $f/$TF inside container" "apptainer exec $IMG rm $f/$TF"
         testF "cannot find $f/$TF outside container" "ls $f/$TF && rm $f/$TF"
     done
-done
 
-# Summary
-echo -e "\n## Summary ##"
-echo "$NP tests passed"
-echo "$NF tests failed"
+	# Summary
+	echo -e "\n## Summary - ${filebase} ##"
+	echo "$NP tests passed"
+	echo "$NF tests failed"
+	echo ""
+done
