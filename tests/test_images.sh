@@ -16,6 +16,18 @@ $ test_images.sh $WORK/test_images $HOME $SCRATCH /tmp
     exit 1
 fi
 
+function testC() {
+    if [[ "$( eval $2 )" == *"$3"* ]]
+    then
+        echo "PASSED - $1"
+        NP=$((NP+1))
+    else
+        echo "FAILED - $1"
+        echo "$2 does not produce '$3'"
+        NF=$((NF+1))
+    fi
+}
+
 function testV() {
     if [ "$( eval $2 )" == "$3" ]
     then
@@ -27,6 +39,7 @@ function testV() {
         NF=$((NF+1))
     fi
 }
+
 function testO() {
     if [[ -z $( diff <( $2 2>/dev/null) <( $3 2>/dev/null) ) ]]
     then
@@ -39,6 +52,7 @@ function testO() {
         NF=$((NF+1))
     fi
 }
+
 function testT() {
     if bash -c "$2" &>/dev/null
     then
@@ -49,6 +63,7 @@ function testT() {
         NF=$((NF+1))
     fi
 }
+
 function testF() {
     if $2 &> /dev/null
     then
@@ -60,6 +75,7 @@ function testF() {
         NP=$((NP+1))
     fi
 }
+
 function verlte {
     # Check to see if V1 <= V2
     #
@@ -128,7 +144,11 @@ do
 
     # Run ML tests (if applicable)
     if [[ $ML -eq 1 ]]; then
-        echo "Running ML tests..."
+        # test pytorch
+        testC "Load pytorch and find GPU" "apptainer exec --nv $IMG python torch_test.py 2>/dev/null" "CUDA available: True"
+
+        # test tensorflow
+        testC "Load tensorflow and find GPU" "apptainer exec --nv $IMG python tf_test.py 2>/dev/null" "GPU available: True"
     fi
 
     # Run MPI tests (if applicable)
