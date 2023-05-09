@@ -79,7 +79,8 @@ function checkimg() {
 
     if [[ $has_ml -eq 1 ]]; then
         ML=1
-    elif [[ $has_mpi -eq 1 ]]; then
+    fi
+    if [[ $has_mpi -eq 1 ]]; then
         MPI=1
     fi
 }
@@ -98,7 +99,7 @@ do
     NP=0
     NF=0
 
-    filebase="${IMG%%.*}"
+    filebase="${IMG%%.sif}"
     echo "--------------------------------------------------"
     echo "## TESTING - ${filebase} ##"
 
