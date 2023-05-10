@@ -16,6 +16,8 @@ $ test_images.sh $WORK/test_images $HOME $SCRATCH /tmp
     exit 1
 fi
 
+CONTAINER_RUNTIME="apptainer"
+
 function testC() {
     if [[ "$( eval $2 )" == *"$3"* ]]
     then
@@ -90,8 +92,8 @@ function checkimg() {
     has_mpi=0
 
     [[ $img == *"-pt"* ]] && has_ml=1
-    [[ $img == *"-impi"* ]] && has_mpi=1
-    [[ $img == *"-mvapich"* ]] && has_mpi=1
+    [[ $img == *"-impi"* ]] && has_mpi=1; MPI_TYPE="impi"
+    [[ $img == *"-mvapich"* ]] && has_mpi=1; MPI_TYPE="mvapich"
 
     if [[ $has_ml -eq 1 ]]; then
         ML=1
@@ -100,6 +102,11 @@ function checkimg() {
         MPI=1
     fi
 }
+
+if ! command -v $CONTAINER_RUNTIME &>/dev/null; then
+    echo "ERROR: $CONTAINER_RUNTIME is not loaded! Run 'module load tacc-$CONTAINER_RUNTIME'."
+    exit 1
+fi
 
 IMGDIR=$1
 cd ${IMGDIR}
@@ -112,6 +119,7 @@ for IMG in $(ls -1 *.sif)
 do
     ML=0
     MPI=0
+    MPI_TYPE=""
     NP=0
     NF=0
 
@@ -154,6 +162,12 @@ do
     # Run MPI tests (if applicable)
     if [[ $MPI -eq 1 ]]; then
         echo "Running MPI tests..."
+        if [[ $MPI_TYPE == "impi" ]]; then
+            echo "Running IMPI tests..."
+        fi
+        if [[ $MPI_TYPE == "mvapich" ]]; then
+            echo "Running MVAPICH2 tests..."
+        fi
     fi
 
     # Summary
