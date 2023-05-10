@@ -163,7 +163,7 @@ do
     if [[ $MPI -eq 1 ]]; then
         MPI_ENV=""
         if [[ $MPI_TYPE == "mvapich" ]]; then
-            MPI_ENV="MV2_ENABLE_AFFINITY=0 MV2_SMP_USE_CMA=0"
+            MPI_ENV="MV2_ENABLE_AFFINITY=0 MV2_SMP_USE_CMA=0 MV2_USE_THREAD_WARNING=0"
         fi
         testC "Load mpi4py and calculate pi with 1 task" "$MPI_ENV ibrun -n 1 apptainer run $IMG python pi-mpi.py 100000" "Final Estimate:"
         testC "Load mpi4py and calculate pi with 8 tasks" "$MPI_ENV ibrun -n 8 apptainer run $IMG python pi-mpi.py 100000" "Final Estimate:"
