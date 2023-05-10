@@ -92,8 +92,8 @@ function checkimg() {
     has_mpi=0
 
     [[ $img == *"-pt"* ]] && has_ml=1
-    [[ $img == *"-impi"* ]] && has_mpi=1; MPI_TYPE="impi"
-    [[ $img == *"-mvapich"* ]] && has_mpi=1; MPI_TYPE="mvapich"
+    [[ $img == *"-impi"* ]] && has_mpi=1 && MPI_TYPE="impi"
+    [[ $img == *"-mvapich"* ]] && has_mpi=1 && MPI_TYPE="mvapich"
 
     if [[ $has_ml -eq 1 ]]; then
         ML=1
@@ -161,13 +161,12 @@ do
 
     # Run MPI tests (if applicable)
     if [[ $MPI -eq 1 ]]; then
-        echo "Running MPI tests..."
-        if [[ $MPI_TYPE == "impi" ]]; then
-            echo "Running IMPI tests..."
-        fi
+        MPI_ENV=""
         if [[ $MPI_TYPE == "mvapich" ]]; then
-            echo "Running MVAPICH2 tests..."
+            MPI_ENV="MV2_ENABLE_AFFINITY=0 MV2_SMP_USE_CMA=0"
         fi
+        testC "Load mpi4py and calculate pi with 1 task" "$MPI_ENV ibrun -n 1 apptainer run $IMG python pi-mpi.py 100000" "Final Estimate:"
+        testC "Load mpi4py and calculate pi with 8 tasks" "$MPI_ENV ibrun -n 8 apptainer run $IMG python pi-mpi.py 100000" "Final Estimate:"
     fi
 
     # Summary
