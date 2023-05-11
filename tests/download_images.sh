@@ -34,12 +34,11 @@ main() {
             echo "Creating path ${BASE_PATH}/${d}"
             mkdir -p "{$BASE_PATH}/${d}"
         fi
-
         for l in tf_test.py torch_test.py pi-mpi.py
         do
             if [[ ! -L "${BASE_PATH}/${d}/${l}" ]]; then
                 echo "Creating symlink ${BASE_PATH}/${l} to ${BASE_PATH}/${d}/${l}"
-                ln -s "${BASE_PATH}/${l}" "${BASE_PATH}/${d}/${l}"
+                ln -s -r "${BASE_PATH}/${l}" "${BASE_PATH}/${d}/${l}"
             fi
         done
     done
