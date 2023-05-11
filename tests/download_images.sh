@@ -89,7 +89,7 @@ function checktag() {
     elif [[ $has_ml -eq 1 && $has_mpi -eq 1 ]]; then
         echo "ml-mpi"
     elif [[ $has_mpi -eq 1 ]]; then
-        echo "mpi"
+        echo "mpi-ib"
     elif [[ $has_ml -eq 1 ]]; then
         echo "ml"
     else
