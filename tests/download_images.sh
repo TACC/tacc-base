@@ -5,7 +5,7 @@ set -euo pipefail
 CONTAINER_RUNTIME="apptainer"
 DELAY=3
 
-if [[ $# -ne 2 || $# -ne 3 ]]; then
+if [[ $# -lt 2 || $# -gt 3 ]]; then
     echo '''Usage: download_images.sh ORG REPO [IMGTYPE]
 
   ORG - the docker hub user/organization name
