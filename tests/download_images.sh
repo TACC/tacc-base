@@ -45,7 +45,7 @@ main() {
     do
         if [[ ! -d "${BASE_PATH}/${d}" ]]; then
             echo "Creating path ${BASE_PATH}/${d}"
-            mkdir -p "{$BASE_PATH}/${d}"
+            mkdir -p "${BASE_PATH}/${d}"
         fi
         for l in tf_test.py torch_test.py pi-mpi.py
         do
