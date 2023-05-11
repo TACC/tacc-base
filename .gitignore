@@ -239,6 +239,11 @@ pyrightconfig.json
 
 *.log
 *.sif
+tests/base
+tests/ml
+tests/mpi
+tests/mpi-psm2
+tests/ml-mpi
 base-images
 ml-images
 mpi-images

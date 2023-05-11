@@ -27,12 +27,21 @@ main() {
     check_deps
     get_tags $URL
 
-    # make image directories
+    # make image directories and setup symlinks
     for d in base ml mpi mpi-psm2 ml-mpi
     do
         if [[ ! -d "${BASE_PATH}/${d}" ]]; then
-            mkdir -p "$BASE_PATH}/${d}"
+            echo "Creating path ${BASE_PATH}/${d}"
+            mkdir -p "{$BASE_PATH}/${d}"
         fi
+
+        for l in tf_test.py torch_test.py pi-mpi.py
+        do
+            if [[ ! -L "${BASE_PATH}/${d}/${l}" ]]; then
+                echo "Creating symlink ${BASE_PATH}/${l} to ${BASE_PATH}/${d}/${l}"
+                ln -s "${BASE_PATH}/${l}" "${BASE_PATH}/${d}/${l}"
+            fi
+        done
     done
 
     for f in $TAGS
