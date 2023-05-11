@@ -20,17 +20,20 @@ fi
 
 ORG=$1
 REPO=$2
-IMGTYPE=$3
+IMGTYPE=${3:-"all"}
+IMGTYPE="${IMGTYPE,,}"
 URL="https://hub.docker.com/v2/repositories/${ORG}/${REPO}/tags/"
 BASE_PATH=$(dirname $(realpath $0))
 TAGS=""
 IMAGES=""
 
-if [[ -z "$IMGTYPE" || "$IMGTYPE" == "all" ]]; then
-    IMGTYPE="all"
-    IMAGES="base ml mpi mpi-psm2 ml-mpi"
-else
+if [[ "$IMGTYPE" == "all" ]]; then
+    IMAGES="base ml mpi-ib mpi-psm2 ml-mpi"
+elif [[ "$IMGTYPE" == "base" || "$IMGTYPE" == "ml" || "$IMGTYPE" == "ml-mpi" || "$IMGTYPE" == "mpi-ib" || "$IMGTYPE" == "mpi-psm2" ]]; then
     IMAGES=$IMGTYPE
+else
+    echo "Optional IMGTYPE must be one of (all, base, ml, ml-mpi, mpi-ib, mpi-psm2)"
+    exit 1
 fi
 
 main() {
