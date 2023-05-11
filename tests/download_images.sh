@@ -64,7 +64,7 @@ main() {
         if [[ "$IMGTYPE" == "all" || "$(checktag $f)" == "$IMGTYPE" ]]; then
             if [[ ! -s "${image_dir}/${image_file}" ]]; then
                 echo "Pulling $image_url"
-                $CONTAINER_RUNTIME pull $image_url --dir ${image_dir} 
+                $CONTAINER_RUNTIME pull --dir ${image_dir} $image_url
                 sleep $DELAY
             else
                 echo "Image file '$image_dir/$image_file' exists, not pulling."
