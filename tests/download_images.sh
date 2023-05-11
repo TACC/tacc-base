@@ -5,30 +5,40 @@ set -euo pipefail
 CONTAINER_RUNTIME="apptainer"
 DELAY=3
 
-if [[ $# -ne 2 ]]; then
-    echo '''Usage: download_images.sh ORG REPO
+if [[ $# -ne 2 || $# -ne 3 ]]; then
+    echo '''Usage: download_images.sh ORG REPO [IMGTYPE]
 
   ORG - the docker hub user/organization name
   REPO - the docker hub repository name
+  IMGTYPE - type of images (all, base, ml, ml-mpi, mpi-ib, mpi-psm2) - default all
 
   Example:
-  $ download_images.sh eriksf tacc-base
+  $ download_images.sh eriksf tacc-base ml
 '''
     exit 1
 fi
 
 ORG=$1
 REPO=$2
+IMGTYPE=$3
 URL="https://hub.docker.com/v2/repositories/${ORG}/${REPO}/tags/"
 BASE_PATH=$(dirname $(realpath $0))
 TAGS=""
+IMAGES=""
+
+if [[ -z "$IMGTYPE" || "$IMGTYPE" == "all" ]]; then
+    IMGTYPE="all"
+    IMAGES="base ml mpi mpi-psm2 ml-mpi"
+else
+    IMAGES=$IMGTYPE
+fi
 
 main() {
     check_deps
     get_tags $URL
 
     # make image directories and setup symlinks
-    for d in base ml mpi mpi-psm2 ml-mpi
+    for d in $IMAGES
     do
         if [[ ! -d "${BASE_PATH}/${d}" ]]; then
             echo "Creating path ${BASE_PATH}/${d}"
@@ -48,12 +58,14 @@ main() {
         image_url="docker://${ORG}/${REPO}:${f}"
         image_dir="${BASE_PATH}/$(checktag $f)"
         image_file="${REPO}_${f}.sif"
-        if [[ ! -s "${image_dir}/${image_file}" ]]; then
-            echo "Pulling $image_url"
-            $CONTAINER_RUNTIME pull $image_url --dir ${image_dir} 
-            sleep $DELAY
-        else
-            echo "Image file '$image_dir/$image_file' exists, not pulling."
+        if [[ "$IMGTYPE" == "all" || "$(checktag $f)" == "$IMGTYPE" ]]; then
+            if [[ ! -s "${image_dir}/${image_file}" ]]; then
+                echo "Pulling $image_url"
+                $CONTAINER_RUNTIME pull $image_url --dir ${image_dir} 
+                sleep $DELAY
+            else
+                echo "Image file '$image_dir/$image_file' exists, not pulling."
+            fi
         fi
     done
 }
