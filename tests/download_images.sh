@@ -10,10 +10,10 @@ if [[ $# -lt 2 || $# -gt 3 ]]; then
 
   ORG - the docker hub user/organization name
   REPO - the docker hub repository name
-  IMGTYPE - type of images (all, base, ml, ml-mpi-mvapich, ml-mpi-impi, mpi-mvapich-ib, mpi-mvapich-psm2, mpi-impi) - default all
+  IMGTYPE - type of images (all, frontera, ls6, stampede2, base, ml, ml-mpi-mvapich, ml-mpi-impi, mpi-mvapich-ib, mpi-mvapich-psm2, mpi-impi) - default all
 
   Example:
-  $ download_images.sh eriksf tacc-base ml
+  $ download_images.sh eriksf tacc-base ls6
 '''
     exit 1
 fi
@@ -25,14 +25,24 @@ IMGTYPE="${IMGTYPE,,}"
 URL="https://hub.docker.com/v2/repositories/${ORG}/${REPO}/tags/"
 BASE_PATH=$(dirname $(realpath $0))
 TAGS=""
-IMAGES=""
+declare -A IMAGES=()
 
 if [[ "$IMGTYPE" == "all" ]]; then
-    IMAGES="base ml mpi-mvapich-ib mpi-mvapich-psm2 mpi-impi ml-mpi-mvapich ml-mpi-impi"
-elif [[ "$IMGTYPE" == "base" || "$IMGTYPE" == "ml" || "$IMGTYPE" == "ml-mpi-mvapich" || "$IMGTYPE" == "ml-mpi-impi" || "$IMGTYPE" == "mpi-mvapich-ib" || "$IMGTYPE" == "mpi-mvapich-psm2" || "$IMGTYPE" == "mpi-impi" ]]; then
-    IMAGES=$IMGTYPE
+    IMAGES=([base]=1 [ml]=1 [mpi-mvapich-ib]=1 [mpi-mvapich-psm2]=1 [mpi-impi]=1 [ml-mpi-mvapich]=1 [ml-mpi-impi]=1)
+elif [[ "$IMGTYPE" == "frontera" || "$IMGTYPE" == "ls6" ]]; then
+    IMAGES=([base]=1 [ml]=1 [mpi-mvapich-ib]=1 [mpi-impi]=1 [ml-mpi-mvapich]=1 [ml-mpi-impi]=1)
+elif [[ "$IMGTYPE" == "stampede2" ]]; then
+    IMAGES=([base]=1 [mpi-mvapich-psm2]=1 [mpi-impi]=1)
+elif [[ "$IMGTYPE" == "base" || \
+        "$IMGTYPE" == "ml" || \
+        "$IMGTYPE" == "ml-mpi-mvapich"|| \
+        "$IMGTYPE" == "ml-mpi-impi" || \
+        "$IMGTYPE" == "mpi-mvapich-ib" || \
+        "$IMGTYPE" == "mpi-mvapich-psm2" || \
+        "$IMGTYPE" == "mpi-impi" ]]; then
+    IMAGES=([$IMGTYPE]=1)
 else
-    echo "Optional IMGTYPE must be one of (all, base, ml, ml-mpi-mvapich, ml-mpi-impi, mpi-mvapich-ib, mpi-mvapich-psm2, mpi-impi)"
+    echo "Optional IMGTYPE must be one of (all, frontera, ls6, stampede2, base, ml, ml-mpi-mvapich, ml-mpi-impi, mpi-mvapich-ib, mpi-mvapich-psm2, mpi-impi)"
     exit 1
 fi
 
@@ -41,7 +51,7 @@ main() {
     get_tags $URL
 
     # make image directories and setup symlinks
-    for d in $IMAGES
+    for d in "${!IMAGES[@]}"
     do
         if [[ ! -d "${BASE_PATH}/${d}" ]]; then
             echo "Creating path ${BASE_PATH}/${d}"
@@ -61,7 +71,7 @@ main() {
         image_url="docker://${ORG}/${REPO}:${f}"
         image_dir="${BASE_PATH}/$(checktag $f)"
         image_file="${REPO}_${f}.sif"
-        if [[ "$IMGTYPE" == "all" || "$(checktag $f)" == "$IMGTYPE" ]]; then
+        if [[ -n "${IMAGES[$(checktag $f)]+_}" ]]; then
             if [[ ! -s "${image_dir}/${image_file}" ]]; then
                 echo "Pulling $image_url"
                 $CONTAINER_RUNTIME pull --dir ${image_dir} $image_url
