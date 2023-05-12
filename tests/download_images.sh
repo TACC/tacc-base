@@ -10,7 +10,7 @@ if [[ $# -lt 2 || $# -gt 3 ]]; then
 
   ORG - the docker hub user/organization name
   REPO - the docker hub repository name
-  IMGTYPE - type of images (all, base, ml, ml-mpi, mpi-ib, mpi-psm2) - default all
+  IMGTYPE - type of images (all, base, ml, ml-mpi-mvapich, ml-mpi-impi, mpi-mvapich-ib, mpi-mvapich-psm2, mpi-impi) - default all
 
   Example:
   $ download_images.sh eriksf tacc-base ml
@@ -28,11 +28,11 @@ TAGS=""
 IMAGES=""
 
 if [[ "$IMGTYPE" == "all" ]]; then
-    IMAGES="base ml mpi-ib mpi-psm2 ml-mpi"
-elif [[ "$IMGTYPE" == "base" || "$IMGTYPE" == "ml" || "$IMGTYPE" == "ml-mpi" || "$IMGTYPE" == "mpi-ib" || "$IMGTYPE" == "mpi-psm2" ]]; then
+    IMAGES="base ml mpi-mvapich-ib mpi-mvapich-psm2 mpi-impi ml-mpi-mvapich ml-mpi-impi"
+elif [[ "$IMGTYPE" == "base" || "$IMGTYPE" == "ml" || "$IMGTYPE" == "ml-mpi-mvapich" || "$IMGTYPE" == "ml-mpi-impi" || "$IMGTYPE" == "mpi-mvapich-ib" || "$IMGTYPE" == "mpi-mvapich-psm2" || "$IMGTYPE" == "mpi-impi" ]]; then
     IMAGES=$IMGTYPE
 else
-    echo "Optional IMGTYPE must be one of (all, base, ml, ml-mpi, mpi-ib, mpi-psm2)"
+    echo "Optional IMGTYPE must be one of (all, base, ml, ml-mpi-mvapich, ml-mpi-impi, mpi-mvapich-ib, mpi-mvapich-psm2, mpi-impi)"
     exit 1
 fi
 
@@ -78,18 +78,23 @@ function checktag() {
     local has_ml=0
     local has_mpi=0
     local has_mpi_psm2=0
+    local mpi_type=""
 
     [[ $tag == *"-pt"* ]] && has_ml=1
-    [[ $tag == *"-impi"* ]] && has_mpi=1
-    [[ $tag == *"-mvapich"* ]] && has_mpi=1
-    [[ $tag == *"-psm2"* ]] && has_mpi_psm2=1
+    [[ $tag == *"-impi"* ]] && has_mpi=1 && mpi_type="impi"
+    [[ $tag == *"-mvapich"* ]] && has_mpi=1 && mpi_type="mvapich"
+    [[ $tag == *"-psm2"* ]] && has_mpi_psm2=1 && mpi_type="mvapich"
 
     if [[ $has_mpi_psm2 -eq 1 ]]; then
-        echo "mpi-psm2"
-    elif [[ $has_ml -eq 1 && $has_mpi -eq 1 ]]; then
-        echo "ml-mpi"
-    elif [[ $has_mpi -eq 1 ]]; then
-        echo "mpi-ib"
+        echo "mpi-mvapich-psm2"
+    elif [[ $has_ml -eq 1 && $has_mpi -eq 1 && $mpi_type == "mvapich" ]]; then
+        echo "ml-mpi-mvapich"
+    elif [[ $has_ml -eq 1 && $has_mpi -eq 1 && $mpi_type == "impi" ]]; then
+        echo "ml-mpi-impi"
+    elif [[ $has_mpi -eq 1 && $mpi_type == "mvapich" ]]; then
+        echo "mpi-mvapich-ib"
+    elif [[ $has_mpi -eq 1 && $mpi_type == "impi" ]]; then
+        echo "mpi-impi"
     elif [[ $has_ml -eq 1 ]]; then
         echo "ml"
     else
