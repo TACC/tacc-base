@@ -46,7 +46,7 @@ ARG BV=.9
 ARG BLD=912
 ARG DIR=intel${MAJV}-${MAJV}.${MINV}${BV}
 
-RUN curl -k -L https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB | apt-key add - \
+RUN curl -k -L https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | apt-key add - \
     && echo deb https://apt.repos.intel.com/mpi all main > /etc/apt/sources.list.d/intel-mpi.list \
     && cat /etc/apt/sources.list.d/intel-mpi.list \
     && apt-get update \
